@@ -10,7 +10,7 @@ const LogoutForm = () => {
       }}
     >
       <button
-        className="bg-green-600 p-2 text-white rounded hover:bg-gray-700 bottom-1"
+        className="bg-black py-2 px-4 text-white rounded-3xl hover:bg-gray-800 text-[13px] bottom-1"
         type="submit"
       >
         Sign out

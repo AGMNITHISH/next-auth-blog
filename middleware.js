@@ -17,10 +17,13 @@ export async function middleware(request) {
   );
 
   console.log(isPublicRouts);
+  const headers = new Headers(request.headers);
+  headers.set("x-current-path", request.nextUrl.pathname);
 
   if (!isAuthenticated && !isPublicRouts) {
     return NextResponse.redirect(new URL(ROOT, nextUrl));
   }
+  return NextResponse.next({ headers });
 }
 
 export const config = {
