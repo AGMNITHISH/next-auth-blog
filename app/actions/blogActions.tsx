@@ -1,5 +1,27 @@
 "use server";
 import { prisma } from "../../utils/prisma";
+import { cloudinary } from "@/utils/cloudinary";
+import { revalidatePath, revalidateTag } from "next/cache";
+import { redirect } from "next/navigation";
+
+async function uploadImage(file: File): Promise<string> {
+  const arrayBuffer = await file.arrayBuffer();
+  const buffer = new Uint8Array(arrayBuffer);
+  return await new Promise((resolve, reject) => {
+    cloudinary.uploader
+      .upload_stream({}, function (err, result) {
+        if (err) {
+          reject(err);
+        } else {
+          if (result && result.url) {
+            resolve(result?.url);
+          }
+          reject(new Error("Upload failed, no URL returned"));
+        }
+      })
+      .end(buffer);
+  });
+}
 
 export async function create(formdata: FormData) {
   console.log("formdata", formdata);
@@ -7,28 +29,38 @@ export async function create(formdata: FormData) {
   const title = formdata.get("title") as string;
   const subTitle = formdata.get("subTitle") as string;
   const content = formdata.get("content") as string;
-  const imageUrl = formdata.get("imageUrl") as string;
+  const imageUrl = formdata.get("imageUrl") as File;
   const createdBy = formdata.get("createdBy") as string;
   const createdByAvatar = formdata.get("createdByAvatar") as string;
 
-  if (
-    !title.trim() ||
-    !subTitle.trim() ||
-    !content.trim() ||
-    !imageUrl.trim() ||
-    !createdBy.trim() ||
-    !createdByAvatar.trim()
-  ) {
-    return;
+  try {
+    const cloudinaryImageUpload = await uploadImage(imageUrl);
+
+    console.log("cloudinaryImageUpload", cloudinaryImageUpload);
+    if (
+      !title.trim() ||
+      !subTitle.trim() ||
+      !content.trim() ||
+      !cloudinaryImageUpload.trim() ||
+      !createdBy.trim() ||
+      !createdByAvatar.trim()
+    ) {
+      return;
+    }
+    await prisma.blog.create({
+      data: {
+        title,
+        subTitle,
+        content,
+        imageUrl: cloudinaryImageUpload,
+        createdBy,
+        createdByAvatar,
+      },
+    });
+    console.log("Blog entry created successfully");
+    redirect("/dashboard");
+  } catch (error) {
+    console.error("Error creating blog entry:", error);
+    throw error;
   }
-  await prisma.blog.create({
-    data: {
-      title,
-      subTitle,
-      content,
-      imageUrl,
-      createdBy,
-      createdByAvatar,
-    },
-  });
 }
