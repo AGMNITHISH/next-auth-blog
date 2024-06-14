@@ -1,7 +1,6 @@
 "use server";
 import { prisma } from "../../utils/prisma";
 import { cloudinary } from "@/utils/cloudinary";
-import { revalidatePath, revalidateTag } from "next/cache";
 import { redirect } from "next/navigation";
 
 async function uploadImage(file: File): Promise<string> {
@@ -64,3 +63,22 @@ export async function create(formdata: FormData) {
     throw error;
   }
 }
+
+export const fetchData = async () => {
+  return await prisma.blog.findMany({
+    take: 10,
+    select: {
+      id: true,
+      title: true,
+      subTitle: true,
+      content: true,
+      imageUrl: true,
+      createdBy: true,
+      createdByAvatar: true,
+      createdAt: true,
+    },
+    orderBy: {
+      createdAt: "desc",
+    },
+  });
+};

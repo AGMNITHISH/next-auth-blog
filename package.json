@@ -11,6 +11,7 @@
   "dependencies": {
     "@prisma/client": "^5.15.0",
     "cloudinary": "^2.2.0",
+    "moment": "^2.30.1",
     "next": "14.2.3",
     "next-auth": "^5.0.0-beta.19",
     "next-cloudinary": "^6.6.2",
